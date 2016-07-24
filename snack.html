@@ -1,0 +1,346 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>贪吃蛇</title>
+</head>
+<style>
+	ul,li{
+	padding: 0;
+	margin: 0;
+	list-style: none;
+	}
+	.header{
+		width: 230px;
+		height: 560px;
+		/*background: #423B39;*/
+		text-align: center;
+		display: none;
+		position: absolute;
+		left:224px;
+		top:33px;
+	}
+	ul{
+		margin-top: 20px;
+	}
+	.ul li{
+		display: inline-block;
+		padding: 12px 58px;
+		background: #BA5733;
+		margin: 0  0 10px 0;
+		cursor: pointer;
+	}
+	.guan{
+		font-size: 20px;
+		color:#fff;
+		padding-top: 20px;
+		margin-top: 50px;
+		font-weight: bold;
+	}
+	.active{
+		background: blue;
+	}
+	#sence{
+		width:600px;
+		height:600px;
+		background: #0079C0;
+		border:1px solid #0079C0;
+		border-bottom: none;
+		border-right: none;
+		margin: auto;
+		position: absolute;
+		left: 105px;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		display: none;
+	}
+	.block{
+		width: 29px;
+		height: 29px;
+		margin: 0 1px 1px 0;
+		float: left;
+		background: rgba(255,255,255,0.8);
+	}
+	.shiwu{
+		/*background-image: url(photo/u.jpg);*/
+		background: #000;
+	}
+	.she{
+		background: #06F106;
+	}
+	ul li{
+		display: inline-block;
+		padding: 12px 58px;
+		background:#BA5733;
+		margin: 0  0 10px 0;
+		cursor: pointer;
+		color: #fff;
+		font-weight: bold;
+	}
+	#res{
+		padding: 12px 42px;
+	}
+	.box{
+		background-image:url(photo/04.png);
+		margin: auto;
+		width: 854px;
+		height: 520px;
+		position: absolute;
+		left: 0;
+		top:50px;
+		right:0;
+		cursor: pointer;
+	}
+	.play{
+		background-image: url(photo/05.jpg);
+		width: 260px;
+		height:60px;
+		position: absolute;
+		left: 550px;
+		bottom:150px;
+		cursor: pointer;
+	}
+	.big{
+		background-image:url(photo/4.jpg);
+		width: 1024px;
+		height: 650px;
+		margin: auto;
+		display: none;
+	}
+	.aa{
+		height: 750px;
+		width: 1024px;
+		position: absolute;
+		margin: auto;
+		left:0px;
+		top:-80px;
+		right:0;
+		bottom:0;
+		background: #000;
+		display: none;
+		text-align: center;
+		font-size: 25px;
+		font-weight: bold;
+		color: #fff;
+		background-image: url(photo/c.jpg);
+		cursor: pointer;
+		/*opacity: 1;*/
+	}
+	.tart{
+		cursor: pointer;
+		margin-top: 40px;
+		/*background: red;*/
+		height:50px;
+		width: 100px;
+		position: absolute;
+		right:260px;
+		bottom:100px;
+	}
+</style>
+<body>
+	<div class="box"></div>
+	<div class="play"></div>
+	<div class="big">
+		<div class="header">
+			<div class="guan">关卡选择</div>
+			<ul class="ul">
+				<li data-row="15">15x15</li>
+				<li data-row="20" class="active">20x20</li>
+				<li data-row="30">30x30</li>
+			</ul>
+			<input type="text" id="hangxuanze" placeholder="请输入5-40的数字">
+			<ul class="lis">
+				<li class="kaishi">开始</li>
+				<li class="zanting">暂停</li>
+				<li class="restart" id="res">重新开始</li>
+			</ul>
+	</div>
+	<div id="sence"></div>
+	</div>
+	<div class="aa">
+		<div class="tart"></div>
+	</div>
+	<script src="jquery-1.12.0.js"></script>
+	<script>
+	$(function(){
+	$('.play').on("click",function(){
+		$('.box').animate({opacity:0},2000)
+		.queue(find)
+	})
+	$('.aa').on("click",function(){
+		$('.aa').css('display','none');
+		restart();
+	})
+	var find=function(){
+		$('#sence').css('display','block');
+		$('.header').css('display','block');
+		$('.big').css('display','block')
+	}
+	//全局变量
+	var hang=20;
+	var she=[{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+	var shiwu;
+	var fangxiang=39;
+	var timerId;
+	//公用函数
+	var xy2id=function(x,y){
+		return x+'-'+y;
+	}
+	//画场景
+	var huachangjing=function(){
+		hang=hang ||20;
+		var wh=Math.floor(600/hang);
+		var i=0,j=0;
+		var sence=$('#sence').empty();
+		for(;i<hang;i++){
+			for(j=0;j<hang;j++){
+				$('<div>')
+				.addClass("block")
+				.width(wh-1)
+				.height(wh-1)
+				.attr('id',xy2id(i,j))
+				.appendTo(sence)
+			}
+		}
+		sence.width(wh*hang).height(wh*hang);
+	}
+	huachangjing();
+
+	//////画蛇
+	var huashe=function(){
+		she.forEach(function(v){
+		$('#'+xy2id(v.x,v.y))
+		.addClass("she");
+		})
+	}
+	huashe();
+
+	//画食物
+	var fangshiwu=function(){
+		var _x=Math.floor(Math.random()*hang);
+		var _y=Math.floor(Math.random()*hang);
+		$('#'+xy2id(_x,_y))
+		.addClass("shiwu");
+		 return {x:_x,y:_y}
+	}
+	shiwu=fangshiwu();
+
+ 	var move=function(){
+ 		var jiutou=she[she.length-1];
+ 		var xintou;
+ 		if(fangxiang===39){
+ 			xintou={x:jiutou.x,y:jiutou.y+1};
+ 		}else if(fangxiang===37){
+ 			xintou={x:jiutou.x,y:jiutou.y-1};
+ 		}else if(fangxiang===38){
+ 			xintou={x:jiutou.x-1,y:jiutou.y};
+ 		}else if(fangxiang===40){
+ 			xintou={x:jiutou.x+1,y:jiutou.y}
+ 		}
+ 		//撞死了
+ 		if(xintou.x<0 || xintou.y>hang-1 ||xintou.x>hang-1||xintou.y<0){
+ 			clearInterval(timerId);
+ 			// alert("Gameover");
+ 			$('.aa').css('display','block')
+ 			return;
+ 			//吃到食物
+ 		}else if(xintou.x===shiwu.x && xintou.y===shiwu.y){
+			$('#'+xy2id(xintou.x,xintou.y))
+			.addClass("she")
+			.removeClass("shiwu");
+ 			she.push(xintou);
+			shiwu=fangshiwu();
+			///没吃到
+ 		}else{
+ 			she.push(xintou);
+			$('#'+xy2id(xintou.x,xintou.y))
+			.addClass("she");
+			var weiba=she.shift();
+			$('#'+xy2id(weiba.x,weiba.y))
+			.removeClass("she");
+ 		}
+ 	}
+
+	$(document).bind("keydown",function(e){
+		if(e.keyCode<37 ||e.keyCode>40){
+			return;
+		}
+		fangxiang=e.keyCode;
+	})
+
+	/////更换行和列
+	$("#hangxuanze").bind("keydown",function(e){
+		if(e.keyCode===13){
+			$('.active').removeClass("active");
+			var row=$(this).val();
+			hang=row;
+			huachangjing();
+			huashe();
+			fangshiwu();
+		}
+	})
+
+	////点击事件选择
+	$('ul li[data-row]').bind("click",function(){
+       $('.active').removeClass("active");
+       $(this).addClass("active");
+       hang=$(this).attr("data-row");
+       huachangjing();
+       huashe();
+       fangshiwu();
+	})
+
+	/////开始点击
+	var start=function(){
+		$(this).addClass("active")
+		$('.zanting').removeClass("active");
+		clearInterval(timerId);
+		timerId=setInterval(move,150);
+	}
+
+	var paus=function(){
+		$('.kaishi').removeClass("active");
+		$('.restart').removeClass("active");
+		$(this).addClass("active");
+		clearInterval(timerId);
+	}
+
+	var restart=function(){
+		$('.aa').css('display','none');
+		$('.kaishi').removeClass("active");
+		$('.zanting').removeClass("active");
+		$('.restart').addClass("active");
+		$('.sence').empty()
+		clearInterval(timerId);
+		huachangjing();
+		she=[{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+		huashe();
+		shiwu=fangshiwu();
+		timerId=setInterval(move,150);
+	}
+
+	$('.kaishi').bind("click",start)
+	$('.zanting').bind("click",paus)
+	$('.restart').bind("click",restart)
+
+	$('.tart').on('click',function(){
+		$('.aa').css('display','none');
+		clearInterval(timerId);
+		huachangjing();
+		she=[{x:0,y:0},{x:0,y:1},{x:0,y:2}];
+		huashe();
+		shiwu=fangshiwu();
+		timerId=setInterval(move,150);
+	})
+	// $('.tuichu').on('click',function(){
+	// 	$('.aa').css('display','none');
+	// 	$('#sence').animate({opacity:0},1000);
+	// 	$('.header').animate({opacity:0},1000)
+	// 	$('.big').animate({opacity:0},1000)
+	// 	$('.box').fadeIn({opacity:1},200)
+	// })
+	})
+	</script>
+</body>
+</html>
